@@ -1,7 +1,7 @@
 {
     "NAME"     : "PAWS",
-    "URL"      : "https://github.com/severedsolo/UPFM/blob/master/UPFM/Untitled%20Part%20Failure%20Mod/bin/Release/GameData/UPFM.version",
-    "DOWNLOAD" : "https://github.com/severedsolo/UPFM/releases",
+    "URL"      : "https://github.com/severedsolo/PAWS/blob/master/bin/Release/GameData/PAWS/PAWS.version",
+    "DOWNLOAD" : "https://github.com/severedsolo/PAWS/releases",
     "GITHUB" :
     {
         "USERNAME" : "severedsolo",
