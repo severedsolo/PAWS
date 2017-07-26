@@ -45,3 +45,11 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+*.dll
+bin/Release/PAWS.dll.mdb
+*.pdb
+*.xml
+obj/Release/CoreCompileInputs.cache
+*.cache
+obj/Release/PAWS.csproj.FileListAbsolute.txt
+*.csproj
