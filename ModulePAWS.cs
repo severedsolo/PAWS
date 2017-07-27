@@ -90,6 +90,7 @@ namespace PAWS
 
         void GUIDisplay(int windowID)
         {
+            string label;
             advanced = GUILayout.Toggle(advanced, "Advanced Mode");
             if (GUILayout.Button("Show Fields")) showFields = !showFields;
             if (showFields)
@@ -103,14 +104,16 @@ namespace PAWS
                         BaseField bf;
                         if (!advanced) bf = sortedFields.ElementAt(i);
                         else bf = sortedAdvancedFields.ElementAt(i);
+                        if (bf.guiActive) label = "Toggle Off";
+                        else label = "Toggle On";
                         GUILayout.Label(bf.guiName);
-                        if (GUILayout.Button("Toggle"))
+                        if (GUILayout.Button(label))
                         {
                             bf.guiActive = !bf.guiActive;
                             if (globalSave)
                             {
-                                PAWSGlobalSettings.instance.enabledFields.Remove(bf.guiName);
-                                PAWSGlobalSettings.instance.enabledFields.Add(bf.guiName, bf.guiActive);
+                                PAWSGlobalSettings.instance.enabledFields.Remove(bf.name);
+                                PAWSGlobalSettings.instance.enabledFields.Add(bf.name, bf.guiActive);
                             }
                         }
                     }
@@ -129,15 +132,17 @@ namespace PAWS
                         BaseEvent be;
                         if (!advanced) be = sortedEvents.ElementAt(i);
                         else be = sortedAdvancedEvents.ElementAt(i);
+                        if (be.guiActive) label = "Toggle Off";
+                        else label = "Toggle On";
                         if (be == Events["CustomisePAW"]) continue;
                         GUILayout.Label(be.guiName);
-                        if (GUILayout.Button("Toggle"))
+                        if (GUILayout.Button(label))
                         {
                             be.guiActive = !be.guiActive;
                             if (globalSave)
                             {
-                                PAWSGlobalSettings.instance.enabledEvents.Remove(be.guiName);
-                                PAWSGlobalSettings.instance.enabledEvents.Add(be.guiName, be.guiActive);
+                                PAWSGlobalSettings.instance.enabledEvents.Remove(be.name);
+                                PAWSGlobalSettings.instance.enabledEvents.Add(be.name, be.guiActive);
                             }
                         }
                     }

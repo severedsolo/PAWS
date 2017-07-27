@@ -29,14 +29,17 @@ namespace PAWS
 
         public override void OnLoad(ConfigNode node)
         {
+            PAWSGlobalSettings.instance.enabledEvents.Clear();
+            PAWSGlobalSettings.instance.enabledFields.Clear();
             ConfigNode[] loaded = node.GetNodes("EVENT");
             if(loaded.Count() >0)
             {
                 for (int i = 0; i < loaded.Count(); i++)
                 {
-                    string name = node.GetValue("Name");
+                    ConfigNode cn = loaded.ElementAt(i);
+                    string name = cn.GetValue("Name");
                     if (name == null) continue;
-                    if (bool.TryParse(node.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledEvents.Add(name, enabled);
+                    if (bool.TryParse(cn.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledEvents.Add(name, enabled);
                 }
             }
             loaded = node.GetNodes("FIELD");
@@ -44,9 +47,10 @@ namespace PAWS
             {
                 for (int i = 0; i < loaded.Count(); i++)
                 {
-                    string name = node.GetValue("Name");
+                    ConfigNode cn = loaded.ElementAt(i);
+                    string name = cn.GetValue("Name");
                     if (name == null) continue;
-                    if (bool.TryParse(node.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledFields.Add(name, enabled);
+                    if (bool.TryParse(cn.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledFields.Add(name, enabled);
                 }
             }
             PAWSGlobalSettings.instance.UpdateAllEvents();
