@@ -53,3 +53,4 @@ obj/Release/CoreCompileInputs.cache
 *.cache
 obj/Release/PAWS.csproj.FileListAbsolute.txt
 *.csproj
+*.zip
