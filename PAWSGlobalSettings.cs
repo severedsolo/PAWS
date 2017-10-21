@@ -13,6 +13,8 @@ namespace PAWS
         public bool globalToggle = false;
         public Dictionary<string, bool> enabledEvents = new Dictionary<string, bool>();
         public Dictionary<string, bool> enabledFields = new Dictionary<string, bool>();
+        public Dictionary<string, bool> enabledEditorEvents = new Dictionary<string, bool>();
+        public Dictionary<string, bool> enabledEditorFields = new Dictionary<string, bool>();
         bool ready;
 
         private void Awake()
@@ -37,6 +39,7 @@ namespace PAWS
                     {
                         BaseEvent ev = events.ElementAt(e);
                         if (enabledEvents.TryGetValue(ev.name, out bool b)) ev.guiActive = b;
+                        if (enabledEditorEvents.TryGetValue(ev.name, out b)) ev.guiActiveEditor = b;
                     }
                 }
                 BaseFieldList fields = p.Fields;
@@ -45,6 +48,7 @@ namespace PAWS
                     foreach (BaseField field in fields)
                     {
                         if (enabledFields.TryGetValue(field.name, out bool b)) field.guiActive = b;
+                        if (enabledEditorFields.TryGetValue(field.name, out b)) field.guiActiveEditor = b;
                     }
                 }
                 PartModuleList modules = p.Modules;
@@ -58,6 +62,7 @@ namespace PAWS
                         {
                             BaseEvent ev = events.ElementAt(e);
                             if (enabledEvents.TryGetValue(ev.name, out bool b)) ev.guiActive = b;
+                            if (enabledEditorEvents.TryGetValue(ev.name, out b)) ev.guiActiveEditor = b;
                         }
                     }
                     fields = partModule.Fields;
@@ -66,6 +71,7 @@ namespace PAWS
                         foreach (BaseField field in fields)
                         {
                             if (enabledFields.TryGetValue(field.name, out bool b)) field.guiActive = b;
+                            if (enabledEditorFields.TryGetValue(field.name, out b)) field.guiActiveEditor = b;
                         }
                     }
                 }

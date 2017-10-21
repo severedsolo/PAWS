@@ -22,8 +22,10 @@ namespace PAWS
         List<BaseEvent> sortedEvents;
         List<BaseField> sortedAdvancedFields;
         List<BaseEvent> sortedAdvancedEvents;
+        List<BaseField> sortedEditorFields;
+        List<BaseEvent> sortedEditorEvents;
 
-        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = false, guiActiveEditor = false, externalToEVAOnly = false, guiName = "Customise PAW")]
+        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = true, guiActiveEditor = true, externalToEVAOnly = false, guiName = "Customise PAW")]
         void CustomisePAW()
         {
             showGUI = !showGUI;
@@ -33,13 +35,19 @@ namespace PAWS
         {
             List<BaseField> myFieldList = new List<BaseField>();
             List<BaseEvent> myEventList = new List<BaseEvent>();
+            List<BaseField> myEditorFieldList = new List<BaseField>();
+            List<BaseEvent> myEditorEventList = new List<BaseEvent>();
             List<BaseField> myAdvancedFieldList = new List<BaseField>();
             List<BaseEvent> myAdvancedEventList = new List<BaseEvent>();
             if (part.Events.Count > 0)
             {
                 foreach (BaseEvent e in part.Events)
                 {
-                    if (e.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(e);
+                    if (!HighLogic.LoadedSceneIsEditor)
+                    {
+                        if (e.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(e);
+                    }
+                    else if(e.guiActiveEditor || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEditorEventList.Add(e);
                     myAdvancedEventList.Add(e);
                 }
             }
@@ -47,7 +55,11 @@ namespace PAWS
             {
                 foreach (BaseField bf in part.Fields)
                 {
-                    if (bf.guiActive || PAWSGlobalSettings.instance.enabledFields.TryGetValue(bf.name, out bool b)) myFieldList.Add(bf);
+                    if (!HighLogic.LoadedSceneIsEditor)
+                    {
+                        if (bf.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(bf.name, out bool b)) myFieldList.Add(bf);
+                    }
+                    else if (bf.guiActiveEditor || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(bf.name, out bool b)) myEditorFieldList.Add(bf);
                     myAdvancedFieldList.Add(bf);
                 }
             }
@@ -55,27 +67,37 @@ namespace PAWS
             {
                 foreach (PartModule pm in part.Modules)
                 {
-                    if (pm.Fields.Count > 0)
-                    {
-                        foreach (BaseField bf in pm.Fields)
-                        {
-                            if (bf.guiActive || PAWSGlobalSettings.instance.enabledFields.TryGetValue(bf.name, out bool b)) myFieldList.Add(bf);
-                            myAdvancedFieldList.Add(bf);
-                        }
-                    }
-                    if (pm.Events.Count() > 0)
+                    if (pm.Events.Count > 0)
                     {
                         foreach (BaseEvent e in pm.Events)
                         {
                             int id = e.id;
-                            if (e.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(pm.Events[id]);
+                            if (!HighLogic.LoadedSceneIsEditor)
+                            {
+                                if (e.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(pm.Events[id]);
+                            }
+                            else if (e.guiActiveEditor || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEditorEventList.Add(pm.Events[id]);
                             myAdvancedEventList.Add(e);
+                        }
+                    }
+                    if (pm.Fields.Count > 0)
+                    {
+                        foreach (BaseField bf in pm.Fields)
+                        {
+                            if (!HighLogic.LoadedSceneIsEditor)
+                            {
+                                if (bf.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(bf.name, out bool b)) myFieldList.Add(bf);
+                            }
+                            else if (bf.guiActiveEditor || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(bf.name, out bool b)) myEditorFieldList.Add(bf);
+                            myAdvancedFieldList.Add(bf);
                         }
                     }
                 }
             }
             sortedFields = myFieldList.OrderBy(baseField => baseField.guiName).ToList();
             sortedEvents = myEventList.OrderBy(baseEvent => baseEvent.guiName).ToList();
+            sortedEditorFields = myEditorFieldList.OrderBy(baseField => baseField.guiName).ToList();
+            sortedEditorEvents = myEditorEventList.OrderBy(baseEvent => baseEvent.guiName).ToList();
             sortedAdvancedFields = myAdvancedFieldList.OrderBy(baseField => baseField.guiName).ToList();
             sortedAdvancedEvents = myAdvancedEventList.OrderBy(baseEvent => baseEvent.guiName).ToList();
         }
@@ -100,20 +122,32 @@ namespace PAWS
                 {
                     for (int i = 0; i < sortedAdvancedFields.Count(); i++)
                     {
-                        if (!advanced && i >= sortedFields.Count()) break;
+                        if (!advanced && i >= sortedFields.Count() && !HighLogic.LoadedSceneIsEditor) break;
+                        if (!advanced && i >= sortedEditorFields.Count() && HighLogic.LoadedSceneIsEditor) break;
                         BaseField bf;
-                        if (!advanced) bf = sortedFields.ElementAt(i);
+                        if (!advanced && !HighLogic.LoadedSceneIsEditor) bf = sortedFields.ElementAt(i);
+                        else if (!advanced && HighLogic.LoadedSceneIsEditor) bf = sortedEditorFields.ElementAt(i);
                         else bf = sortedAdvancedFields.ElementAt(i);
-                        if (bf.guiActive) label = "Toggle Off";
+                        if (bf.guiActive && !HighLogic.LoadedSceneIsEditor) label = "Toggle Off";
+                        else if (bf.guiActiveEditor && HighLogic.LoadedSceneIsEditor) label = "Toggle Off";
                         else label = "Toggle On";
                         GUILayout.Label(bf.guiName);
                         if (GUILayout.Button(label))
                         {
-                            bf.guiActive = !bf.guiActive;
+                            if (!HighLogic.LoadedSceneIsEditor) bf.guiActive = !bf.guiActive;
+                            else bf.guiActiveEditor = !bf.guiActiveEditor;
                             if (globalSave)
                             {
-                                PAWSGlobalSettings.instance.enabledFields.Remove(bf.name);
-                                PAWSGlobalSettings.instance.enabledFields.Add(bf.name, bf.guiActive);
+                                if (!HighLogic.LoadedSceneIsEditor)
+                                {
+                                    PAWSGlobalSettings.instance.enabledFields.Remove(bf.name);
+                                    PAWSGlobalSettings.instance.enabledFields.Add(bf.name, bf.guiActive);
+                                }
+                                else
+                                {
+                                    PAWSGlobalSettings.instance.enabledEditorFields.Remove(bf.name);
+                                    PAWSGlobalSettings.instance.enabledEditorFields.Add(bf.name, bf.guiActive);
+                                }
                             }
                         }
                     }
@@ -128,21 +162,33 @@ namespace PAWS
                 {
                     for (int i = 0; i < sortedAdvancedEvents.Count(); i++)
                     {
-                        if (!advanced && i >= sortedEvents.Count()) break;
+                        if (!advanced && i >= sortedEvents.Count() && !HighLogic.LoadedSceneIsEditor) break;
+                        if (!advanced && i >= sortedEditorEvents.Count() && HighLogic.LoadedSceneIsEditor) break;
                         BaseEvent be;
-                        if (!advanced) be = sortedEvents.ElementAt(i);
+                        if (!advanced && !HighLogic.LoadedSceneIsEditor) be = sortedEvents.ElementAt(i);
+                        else if (!advanced && HighLogic.LoadedSceneIsEditor) be = sortedEditorEvents.ElementAt(i);
                         else be = sortedAdvancedEvents.ElementAt(i);
-                        if (be.guiActive) label = "Toggle Off";
+                        if (be.guiActive && !HighLogic.LoadedSceneIsEditor) label = "Toggle Off";
+                        else if (be.guiActiveEditor && HighLogic.LoadedSceneIsEditor) label = "Toggle Off";
                         else label = "Toggle On";
                         if (be == Events["CustomisePAW"]) continue;
                         GUILayout.Label(be.guiName);
                         if (GUILayout.Button(label))
                         {
-                            be.guiActive = !be.guiActive;
+                            if (!HighLogic.LoadedSceneIsEditor) be.guiActive = !be.guiActive;
+                            else if (HighLogic.LoadedSceneIsEditor) be.guiActiveEditor = !be.guiActiveEditor;
                             if (globalSave)
                             {
-                                PAWSGlobalSettings.instance.enabledEvents.Remove(be.name);
-                                PAWSGlobalSettings.instance.enabledEvents.Add(be.name, be.guiActive);
+                                if (!HighLogic.LoadedSceneIsEditor)
+                                {
+                                    PAWSGlobalSettings.instance.enabledEvents.Remove(be.name);
+                                    PAWSGlobalSettings.instance.enabledEvents.Add(be.name, be.guiActive);
+                                }
+                                else
+                                {
+                                    PAWSGlobalSettings.instance.enabledEditorEvents.Remove(be.name);
+                                    PAWSGlobalSettings.instance.enabledEditorEvents.Add(be.name, be.guiActive);
+                                }
                             }
                         }
                     }
