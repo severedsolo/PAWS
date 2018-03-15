@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PAWS
 {
-    [KSPScenario(ScenarioCreationOptions.AddToAllGames,GameScenes.FLIGHT,GameScenes.EDITOR)]
+    [KSPScenario(ScenarioCreationOptions.AddToAllGames,GameScenes.FLIGHT)]
     class PAWSScenario : ScenarioModule
     {
         public override void OnSave(ConfigNode node)
@@ -21,21 +21,6 @@ namespace PAWS
             foreach (var v in PAWSGlobalSettings.instance.enabledFields)
             {
                 ConfigNode cn = new ConfigNode("FIELD");
-                cn.SetValue("Name", v.Key, true);
-                cn.SetValue("Enabled", v.Value, true);
-                node.AddNode(cn);
-            }
-
-            foreach (var v in PAWSGlobalSettings.instance.enabledEditorEvents)
-            {
-                ConfigNode cn = new ConfigNode("EDITOREVENT");
-                cn.SetValue("Name", v.Key, true);
-                cn.SetValue("Enabled", v.Value, true);
-                node.AddNode(cn);
-            }
-            foreach (var v in PAWSGlobalSettings.instance.enabledEditorFields)
-            {
-                ConfigNode cn = new ConfigNode("EDITORFIELD");
                 cn.SetValue("Name", v.Key, true);
                 cn.SetValue("Enabled", v.Value, true);
                 node.AddNode(cn);
@@ -66,28 +51,6 @@ namespace PAWS
                     string name = cn.GetValue("Name");
                     if (name == null) continue;
                     if (bool.TryParse(cn.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledFields.Add(name, enabled);
-                }
-            }
-            loaded = node.GetNodes("EDITORFIELD");
-            if (loaded.Count() > 0)
-            {
-                for (int i = 0; i < loaded.Count(); i++)
-                {
-                    ConfigNode cn = loaded.ElementAt(i);
-                    string name = cn.GetValue("Name");
-                    if (name == null) continue;
-                    if (bool.TryParse(cn.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledEditorEvents.Add(name, enabled);
-                }
-            }
-            loaded = node.GetNodes("EDITORFIELD");
-            if (loaded.Count() > 0)
-            {
-                for (int i = 0; i < loaded.Count(); i++)
-                {
-                    ConfigNode cn = loaded.ElementAt(i);
-                    string name = cn.GetValue("Name");
-                    if (name == null) continue;
-                    if (bool.TryParse(cn.GetValue("Enabled"), out bool enabled)) PAWSGlobalSettings.instance.enabledEditorFields.Add(name, enabled);
                 }
             }
             PAWSGlobalSettings.instance.UpdateAllEvents();
