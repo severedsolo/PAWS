@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace PAWS
 {
-    [KSPAddon(KSPAddon.Startup.SpaceCentre, true)]
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, true)]
     class PAWSGlobalSettings : MonoBehaviour
     {
         public static PAWSGlobalSettings instance;

@@ -54,3 +54,7 @@ obj/Release/CoreCompileInputs.cache
 obj/Release/PAWS.csproj.FileListAbsolute.txt
 *.csproj
 *.zip
+obj/Debug/PAWS.csproj.FileListAbsolute.txt
+bin/Debug/PAWS.dll.mdb
+obj/Debug/PAWS.csproj.FileListAbsolute.txt
+*.CopyComplete
