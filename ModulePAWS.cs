@@ -29,7 +29,7 @@ namespace PAWS
         int windowID = 0;
         private List<Part> partCache;
 
-        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = false, guiActiveEditor = false, externalToEVAOnly = false, guiName = "Customise PAW")]
+        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = true, guiActiveEditor = false, guiName = "Customise PAW")]
         void CustomisePAW()
         {
             windowID = Guid.NewGuid().GetHashCode();
@@ -37,7 +37,7 @@ namespace PAWS
             showGUI = !showGUI;
         }
         
-        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = false, guiActiveEditor = true, externalToEVAOnly = false, guiName = "Customise Sliders")]
+        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = true, guiActiveEditor = true, externalToEVAOnly = false, guiName = "Customise Sliders")]
         void CustomiseSliders()
         {
             windowID = Guid.NewGuid().GetHashCode();
