@@ -1,33 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 
 namespace PAWS
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class ModulePAWS : PartModule
     {
         public Dictionary<BaseEvent, bool> enabledEvents = new Dictionary<BaseEvent, bool>();
         public Dictionary<BaseField, bool> enabledFields = new Dictionary<BaseField, bool>();
         bool showGUI = false;
-        Rect Window = new Rect(20, 100, 240, 50);
+        private bool showSliderGUI = false;
+        Rect Window = new Rect(20, 100, 400, 50);
         Vector2 scrollPosition1;
         Vector2 scrollPosition2;
         bool showFields = false;
         bool showEvents = false;
         bool advanced = false;
         bool globalSave = true;
+        private bool handleSymmetry = true;
         List<BaseField> sortedFields;
         List<BaseEvent> sortedEvents;
         List<BaseField> sortedAdvancedFields;
         List<BaseEvent> sortedAdvancedEvents;
+        int windowID = 0;
+        private List<Part> partCache;
 
         [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = false, guiActiveEditor = false, externalToEVAOnly = false, guiName = "Customise PAW")]
         void CustomisePAW()
         {
+            windowID = Guid.NewGuid().GetHashCode();
+            showSliderGUI = false;
             showGUI = !showGUI;
         }
+        
+        [KSPEvent(active = true, guiActive = true, guiActiveUnfocused = false, guiActiveEditor = true, externalToEVAOnly = false, guiName = "Customise Sliders")]
+        void CustomiseSliders()
+        {
+            windowID = Guid.NewGuid().GetHashCode();
+            showGUI = false;
+            showSliderGUI = !showSliderGUI;
+        }
+
 
         private void Start()
         {
@@ -39,7 +56,7 @@ namespace PAWS
             {
                 foreach (BaseEvent e in part.Events)
                 {
-                    if (e.guiActive || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(e);
+                    if (e.guiActive || e.guiActiveEditor || PAWSGlobalSettings.instance.enabledEvents.TryGetValue(e.name, out bool b)) myEventList.Add(e);
                     myAdvancedEventList.Add(e);
                 }
             }
@@ -82,76 +99,155 @@ namespace PAWS
 
         public void OnGUI()
         {
-            if (showGUI)
+            if (showSliderGUI)
             {
-                Window = GUILayout.Window(93938174, Window, GUIDisplay, "PAWS", GUILayout.Width(200), GUILayout.Height(200));
+                Window = GUILayout.Window(windowID, Window, GUIDisplay, "PAWS", GUILayout.Width(400), GUILayout.Height(200));
+            }
+            else if (showGUI)
+            {
+                Window = GUILayout.Window(windowID, Window, GUIDisplay, "PAWS", GUILayout.Width(200),GUILayout.Height(200));
             }
         }
 
         void GUIDisplay(int windowID)
         {
-            string label;
-            advanced = GUILayout.Toggle(advanced, "Advanced Mode");
-            if (GUILayout.Button("Show Fields")) showFields = !showFields;
-            if (showFields)
+            GUILayout.Label(part.partInfo.title);
+            if (showGUI)
             {
-                scrollPosition1 = GUILayout.BeginScrollView(scrollPosition1, GUILayout.Width(200), GUILayout.Height(200));
-                if (sortedAdvancedFields.Count() > 0)
+                string label;
+                advanced = GUILayout.Toggle(advanced, "Advanced Mode");
+                if (GUILayout.Button("Show Fields")) showFields = !showFields;
+                if (showFields)
                 {
-                    for (int i = 0; i < sortedAdvancedFields.Count(); i++)
+                    scrollPosition1 =
+                        GUILayout.BeginScrollView(scrollPosition1, GUILayout.Width(200), GUILayout.Height(200));
+                    if (sortedAdvancedFields.Count() > 0)
                     {
-                        if (!advanced && i >= sortedFields.Count()) break;
-                        BaseField bf;
-                        if (!advanced) bf = sortedFields.ElementAt(i);
-                        else bf = sortedAdvancedFields.ElementAt(i);
-                        if (bf.guiActive) label = "Toggle Off";
-                        else label = "Toggle On";
-                        GUILayout.Label(bf.guiName);
-                        if (GUILayout.Button(label))
+                        for (int i = 0; i < sortedAdvancedFields.Count(); i++)
                         {
-                            bf.guiActive = !bf.guiActive;
-                            if (globalSave)
+                            if (!advanced && i >= sortedFields.Count()) break;
+                            BaseField bf;
+                            if (!advanced) bf = sortedFields.ElementAt(i);
+                            else bf = sortedAdvancedFields.ElementAt(i);
+                            if (bf.guiActive) label = "Toggle Off";
+                            else label = "Toggle On";
+                            GUILayout.Label(bf.guiName);
+                            if (GUILayout.Button(label))
                             {
-                                PAWSGlobalSettings.instance.enabledFields.Remove(bf.name);
-                                PAWSGlobalSettings.instance.enabledFields.Add(bf.name, bf.guiActive);
+                                bf.guiActive = !bf.guiActive;
+                                if (globalSave)
+                                {
+                                    PAWSGlobalSettings.instance.enabledFields.Remove(bf.name);
+                                    PAWSGlobalSettings.instance.enabledFields.Add(bf.name, bf.guiActive);
+                                }
                             }
                         }
                     }
+
+                    GUILayout.EndScrollView();
                 }
-                GUILayout.EndScrollView();
-            }
-            if (GUILayout.Button("Show Events")) showEvents = !showEvents;
-            if (showEvents)
-            {
-                scrollPosition2 = GUILayout.BeginScrollView(scrollPosition2, GUILayout.Width(200), GUILayout.Height(200));
-                if (sortedAdvancedEvents.Count() > 0)
+
+                if (GUILayout.Button("Show Events")) showEvents = !showEvents;
+                if (showEvents)
                 {
-                    for (int i = 0; i < sortedAdvancedEvents.Count(); i++)
+                    scrollPosition2 =
+                        GUILayout.BeginScrollView(scrollPosition2, GUILayout.Width(200), GUILayout.Height(200));
+                    if (sortedAdvancedEvents.Count() > 0)
                     {
-                        if (!advanced && i >= sortedEvents.Count()) break;
-                        BaseEvent be;
-                        if (!advanced) be = sortedEvents.ElementAt(i);
-                        else be = sortedAdvancedEvents.ElementAt(i);
-                        if (be.guiActive) label = "Toggle Off";
-                        else label = "Toggle On";
-                        if (be == Events["CustomisePAW"]) continue;
-                        GUILayout.Label(be.guiName);
-                        if (GUILayout.Button(label))
+                        for (int i = 0; i < sortedAdvancedEvents.Count(); i++)
                         {
-                            be.guiActive = !be.guiActive;
-                            if (globalSave)
+                            if (!advanced && i >= sortedEvents.Count()) break;
+                            BaseEvent be;
+                            if (!advanced) be = sortedEvents.ElementAt(i);
+                            else be = sortedAdvancedEvents.ElementAt(i);
+                            if (be.guiActive) label = "Toggle Off";
+                            else label = "Toggle On";
+                            if (be == Events["CustomisePAW"]) continue;
+                            GUILayout.Label(be.guiName);
+                            if (GUILayout.Button(label))
                             {
-                                PAWSGlobalSettings.instance.enabledEvents.Remove(be.name);
-                                PAWSGlobalSettings.instance.enabledEvents.Add(be.name, be.guiActive);
+                                be.guiActive = !be.guiActive;
+                                if (globalSave)
+                                {
+                                    PAWSGlobalSettings.instance.enabledEvents.Remove(be.name);
+                                    PAWSGlobalSettings.instance.enabledEvents.Add(be.name, be.guiActive);
+                                }
                             }
                         }
                     }
+
+                    GUILayout.EndScrollView();
                 }
-                GUILayout.EndScrollView();
+
+                globalSave = GUILayout.Toggle(globalSave, "Save Settings Globally");
             }
-            globalSave = GUILayout.Toggle(globalSave, "Save Settings Globally");
-            if (GUILayout.Button("Close")) showGUI = false;
+            else
+            {
+                for (int i = 0; i < sortedAdvancedFields.Count(); i++)
+                {
+                    BaseField bf = sortedAdvancedFields.ElementAt(i);
+                    if (HighLogic.LoadedSceneIsEditor)
+                    {
+                        if (!bf.guiActiveEditor || bf.uiControlEditor.GetType() != typeof(UI_FloatRange)) continue;
+                    }
+
+                    if (HighLogic.LoadedSceneIsFlight)
+                    {
+                        if (!bf.guiActive || bf.uiControlFlight.GetType() != typeof(UI_FloatRange)) continue;
+                    }
+                    GUILayout.BeginHorizontal();
+                    GUILayout.Label(bf.guiName);
+                    string s = GUILayout.TextField(bf.GetValue(bf.host).ToString());
+                    float.TryParse(s, out float output);
+                    bf.SetValue(output, bf.host);
+                    if (handleSymmetry)
+                    {
+                        partCache = part.symmetryCounterparts;
+                        for (int p = 0; p < partCache.Count(); p++)
+                        {
+                            Part symmetry = partCache.ElementAt(p);
+                            BaseField symmetryField = findField(bf.name, symmetry);
+                            symmetryField.SetValue(output, symmetryField.host);
+                        }
+                    }
+
+                    if (GUILayout.Button("Apply All"))
+                    {
+                        if (!HighLogic.LoadedSceneIsEditor) partCache = vessel.parts;
+                        else partCache = EditorLogic.fetch.ship.parts;
+                        foreach (Part p in partCache)
+                        {
+                            foreach (PartModule pm in p.Modules)
+                            {
+                                foreach (BaseField field in pm.Fields)
+                                {
+                                    if (field.name == bf.name) field.SetValue(output, field.host);
+                                }
+                            }
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+                }
+            }
+            handleSymmetry = GUILayout.Toggle(handleSymmetry, "Enable Symmetry");
+            if (GUILayout.Button("Close"))
+            {
+                showGUI = false;
+                showSliderGUI = false;
+            }
             GUI.DragWindow();
+        }
+
+        private BaseField findField(string fieldName, Part p)
+        {
+            foreach (PartModule pm in p.Modules)
+            {
+                foreach (BaseField field in pm.Fields)
+                {
+                    if (field.name == fieldName) return field;
+                }
+            }
+            return null;
         }
     }
 }
