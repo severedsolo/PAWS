@@ -186,19 +186,26 @@ namespace PAWS
                 for (int i = 0; i < sortedAdvancedFields.Count(); i++)
                 {
                     BaseField bf = sortedAdvancedFields.ElementAt(i);
+                    UI_FloatRange floatRange;
                     if (HighLogic.LoadedSceneIsEditor)
                     {
                         if (!bf.guiActiveEditor || bf.uiControlEditor.GetType() != typeof(UI_FloatRange)) continue;
+                        floatRange = bf.uiControlEditor as UI_FloatRange;
                     }
-
-                    if (HighLogic.LoadedSceneIsFlight)
+                    else
                     {
                         if (!bf.guiActive || bf.uiControlFlight.GetType() != typeof(UI_FloatRange)) continue;
+                        floatRange = bf.uiControlFlight as UI_FloatRange;
                     }
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(bf.guiName);
                     string s = GUILayout.TextField(bf.GetValue(bf.host).ToString());
                     float.TryParse(s, out float output);
+                    if (floatRange != null)
+                    {
+                        if (output > floatRange.maxValue) output = floatRange.maxValue;
+                        if (output < floatRange.minValue) output = floatRange.minValue;
+                    }
                     bf.SetValue(output, bf.host);
                     if (handleSymmetry)
                     {
