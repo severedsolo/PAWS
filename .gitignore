@@ -58,3 +58,4 @@ obj/Debug/PAWS.csproj.FileListAbsolute.txt
 bin/Debug/PAWS.dll.mdb
 obj/Debug/PAWS.csproj.FileListAbsolute.txt
 *.CopyComplete
+*.mdb

@@ -1,0 +1,2 @@
+/home/martin/RiderProjects/PAWS/PAWS/obj/Debug/PAWS.csprojAssemblyReference.cache
+/home/martin/RiderProjects/PAWS/PAWS/obj/Debug/PAWS.csproj.CoreCompileInputs.cache
